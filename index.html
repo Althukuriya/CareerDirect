@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<!--
+SETUP:
+1. Create a Google Sheet named "Jobs" with the columns listed in COLUMN STRUCTURE above.
+2. In the sheet, go to Extensions > Apps Script.
+3. Replace the default code with Code.gs content below.
+4. Click Deploy > New Deployment > Web App.
+   - Execute as: Me
+   - Who has access: Anyone
+5. Copy the Web App URL.
+6. In index.html and job.html, replace PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE with your URL.
+7. Host index.html and job.html together on GitHub Pages, Netlify, or any static file host.
+8. Add your first job row in the Google Sheet with Status = Active.
+9. Refresh your website - the job appears instantly.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareerDirect — Official Company Career Jobs</title>
+  <meta name="description" content="Find jobs sourced directly from official company career pages.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-bg: #F5F6F8;
+      --color-surface: #FFFFFF;
+      --color-primary: #0D1B2A;
+      --color-accent: #1A56DB;
+      --color-accent-light: #EEF3FF;
+      --color-text: #1C1E26;
+      --color-muted: #6B7280;
+      --color-border: #E4E7EC;
+      --color-success: #027A48;
+      --color-tag-bg: #F0F2F5;
+      --color-featured: #FFF8ED;
+      --color-featured-border: #F59E0B;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-strong: 0 8px 24px rgba(13,27,42,0.12);
+      --nav-height: 74px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: "IBM Plex Sans", Arial, sans-serif;
+      line-height: 1.5;
+    }
+    body.locked { overflow: hidden; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+    .sora { font-family: "Sora", sans-serif; }
+    .icon { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(255,255,255,0.98);
+      border-bottom: 1px solid var(--color-border);
+      transition: background .2s ease, backdrop-filter .2s ease;
+    }
+    .topbar.is-scrolled { background: rgba(255,255,255,0.88); backdrop-filter: blur(8px); }
+    .nav { height: var(--nav-height); display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--color-primary); }
+    .brand-mark { width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--color-border); border-radius: 8px; }
+    .brand-title { font-family: "Sora", sans-serif; font-weight: 600; line-height: 1.05; }
+    .brand-subtitle { display: block; margin-top: 3px; color: var(--color-muted); font-size: 11px; font-weight: 400; }
+    .nav-actions { display: flex; align-items: center; gap: 14px; }
+    .nav-search { position: relative; width: 240px; }
+    .nav-search .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-muted); width: 16px; height: 16px; }
+    .nav-search input {
+      width: 100%;
+      height: 38px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 0 12px 0 36px;
+      background: var(--color-surface);
+      color: var(--color-text);
+      outline: none;
+    }
+    .saved-link { color: var(--color-primary); font-weight: 500; font-size: 14px; display: inline-flex; gap: 6px; align-items: center; }
+    .count-badge { min-width: 18px; height: 18px; border-radius: 999px; background: var(--color-accent); color: #fff; font-size: 11px; display: none; align-items: center; justify-content: center; padding: 0 5px; }
+    .count-badge.show { display: inline-flex; }
+    .outline-btn, .solid-btn, .ghost-btn, .icon-btn {
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-primary);
+      border-radius: 8px;
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 14px;
+      font-weight: 600;
+    }
+    .solid-btn { border-color: var(--color-accent); background: var(--color-accent); color: #fff; }
+    .ghost-btn { border-color: transparent; background: transparent; color: var(--color-muted); padding: 0 8px; }
+    .icon-btn { width: 38px; padding: 0; }
+    .hamburger { display: none; }
+
+    .mobile-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: var(--color-surface);
+      padding: 24px;
+      transform: translateX(100%);
+      transition: transform .24s ease;
+    }
+    .mobile-overlay.open { transform: translateX(0); }
+    .mobile-overlay-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+    .mobile-links { display: grid; gap: 18px; font-size: 20px; font-family: "Sora", sans-serif; color: var(--color-primary); }
+
+    .hero { padding: calc(var(--nav-height) + 74px) 0 76px; }
+    .hero-label {
+      color: var(--color-accent);
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-family: "Sora", sans-serif;
+      color: var(--color-primary);
+      font-size: 48px;
+      line-height: 1.08;
+      letter-spacing: 0;
+      margin: 0 0 18px;
+      max-width: 820px;
+    }
+    .hero-copy { color: var(--color-muted); font-size: 17px; margin: 0 0 18px; }
+    .trust-row { color: var(--color-muted); font-size: 13px; margin-bottom: 30px; }
+    .hero-search {
+      position: relative;
+      max-width: 720px;
+      height: 52px;
+      display: flex;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .hero-search .left-icon, .hero-search .spinner { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--color-muted); }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--color-border);
+      border-top-color: var(--color-accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      display: none;
+    }
+    .hero-search.searching .left-icon { display: none; }
+    .hero-search.searching .spinner { display: block; }
+    .hero-search input {
+      flex: 1;
+      border: 0;
+      outline: 0;
+      padding: 0 18px 0 48px;
+      color: var(--color-text);
+      min-width: 0;
+    }
+    .hero-search button { border-radius: 0 9px 9px 0; min-width: 112px; border: 0; }
+    .quick-filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-width: 720px;
+      margin-top: 16px;
+    }
+    .quick-filter {
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-muted);
+      border-radius: 999px;
+      min-height: 30px;
+      padding: 0 12px;
+      font-size: 12px;
+      font-weight: 600;
+      transition: border-color .16s ease, color .16s ease, background .16s ease;
+    }
+    .quick-filter:hover,
+    .quick-filter.active {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+      background: var(--color-accent-light);
+    }
+
+    .stats-strip { background: var(--color-surface); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .stat { padding: 24px 18px; border-left: 1px solid var(--color-border); }
+    .stat:first-child { border-left: 0; }
+    .stat-label { color: var(--color-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+    .stat-value { display: block; margin-top: 6px; color: var(--color-primary); font: 700 28px "Sora", sans-serif; }
+
+    .main { padding: 46px 0 60px; }
+    .layout { display: grid; grid-template-columns: 280px minmax(0,1fr); gap: 28px; align-items: start; }
+    .sidebar {
+      position: sticky;
+      top: calc(var(--nav-height) + 22px);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    .sidebar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .sidebar-title { font-family: "Sora", sans-serif; color: var(--color-primary); font-weight: 600; }
+    .clear-link, .reset-link { border: 0; background: none; color: var(--color-accent); font-weight: 600; padding: 0; }
+    .clear-link[hidden] { display: none; }
+    .filter-group { border-top: 1px solid var(--color-border); }
+    .filter-toggle {
+      width: 100%;
+      min-height: 48px;
+      border: 0;
+      background: transparent;
+      color: var(--color-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: space-between;
+      padding: 0;
+      text-align: left;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .filter-toggle .icon { color: var(--color-muted); width: 15px; height: 15px; transition: transform .16s ease; }
+    .filter-toggle[aria-expanded="true"] .icon { transform: rotate(180deg); }
+    .filter-label { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .filter-count { min-width: 18px; height: 18px; border-radius: 999px; background: var(--color-accent-light); color: var(--color-accent); font-size: 11px; display: none; align-items: center; justify-content: center; }
+    .filter-count.show { display: inline-flex; }
+    .filter-body { display: none; padding: 0 0 16px; }
+    .filter-body.open { display: block; }
+    .filter-options { display: grid; gap: 8px; }
+    .choice { display: flex; gap: 9px; align-items: flex-start; color: var(--color-muted); font-size: 14px; }
+    .choice input { margin-top: 3px; accent-color: var(--color-accent); }
+    .filter-group > .switch-row { padding: 16px 0; }
+    .active-filters {
+      display: none;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: -4px 0 18px;
+    }
+    .active-filters.show { display: flex; }
+    .filter-pill {
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-primary);
+      border-radius: 999px;
+      min-height: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .filter-pill button {
+      width: 16px;
+      height: 16px;
+      border: 0;
+      border-radius: 50%;
+      background: var(--color-accent-light);
+      color: var(--color-accent);
+      display: grid;
+      place-items: center;
+      padding: 0;
+    }
+    .switch-row { display: flex; justify-content: space-between; align-items: center; color: var(--color-muted); font-size: 14px; }
+    .switch { position: relative; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; inset: 0; background: #D0D5DD; border-radius: 999px; transition: .2s; }
+    .slider:before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; box-shadow: var(--shadow); }
+    .switch input:checked + .slider { background: var(--color-accent); }
+    .switch input:checked + .slider:before { transform: translateX(20px); }
+
+    .mobile-filter-btn { display: none; margin-bottom: 16px; }
+    .mobile-filter-count {
+      min-width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--color-accent);
+      color: #fff;
+      font-size: 11px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+    }
+    .mobile-filter-count.show { display: inline-flex; }
+    .drawer-backdrop { position: fixed; inset: 0; background: rgba(13,27,42,.32); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 65; }
+    .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+    .filter-drawer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 70;
+      background: var(--color-surface);
+      border-radius: 14px 14px 0 0;
+      max-height: 82vh;
+      overflow: auto;
+      transform: translateY(100%);
+      transition: transform .24s ease;
+      padding: 18px 22px 28px;
+    }
+    .filter-drawer.open { transform: translateY(0); }
+
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    .result-count { color: var(--color-muted); font-size: 14px; }
+    .toolbar-actions { display: flex; align-items: center; gap: 8px; }
+    .sort-select { height: 38px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-primary); padding: 0 10px; }
+    .view-toggle { display: flex; border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden; background: var(--color-surface); }
+    .view-toggle button { border: 0; border-left: 1px solid var(--color-border); background: transparent; width: 38px; height: 36px; color: var(--color-muted); display: grid; place-items: center; }
+    .view-toggle button:first-child { border-left: 0; }
+    .view-toggle button.active { background: var(--color-accent-light); color: var(--color-accent); }
+
+    .featured-section { margin-bottom: 28px; display: none; }
+    .section-kicker { color: var(--color-muted); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; margin: 0 0 12px; }
+    .featured-row { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 12px; }
+    .featured-row .job-card { min-width: 330px; background: var(--color-featured); border-left: 3px solid var(--color-featured-border); }
+
+    .jobs-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; transition: opacity .2s ease; }
+    .jobs-grid.list { grid-template-columns: 1fr; }
+    .job-card {
+      position: relative;
+      min-height: 224px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      transition: transform .18s ease, box-shadow .18s ease;
+      animation: fadeUp .28s ease both;
+    }
+    .job-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-strong); }
+    .jobs-grid.list .job-card {
+      min-height: 112px;
+      display: grid;
+      grid-template-columns: auto minmax(0,1fr) auto auto;
+      align-items: center;
+      gap: 18px;
+    }
+    .logo-wrap { min-height: 40px; margin-bottom: 14px; display: flex; align-items: center; }
+    .logo-wrap img { max-height: 40px; max-width: 128px; object-fit: contain; }
+    .jobs-grid.list .logo-wrap { margin-bottom: 0; min-width: 72px; }
+    .job-title { color: var(--color-primary); font-weight: 700; font-size: 15px; line-height: 1.35; margin: 0 42px 12px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .tags, .skills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .tag { background: var(--color-tag-bg); color: var(--color-muted); border-radius: 4px; padding: 3px 8px; font-size: 12px; line-height: 1.35; }
+    .skill { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; color: var(--color-primary); background: var(--color-accent-light); border-radius: 4px; padding: 3px 7px; }
+    .salary { color: var(--color-success); font-size: 13px; font-weight: 600; margin-bottom: 18px; }
+    .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+    .posted { color: var(--color-muted); font-size: 12px; }
+    .arrow-link { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--color-accent); color: var(--color-accent); display: grid; place-items: center; background: #fff; }
+    .bookmark {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--color-border);
+      border-radius: 50%;
+      background: var(--color-surface);
+      color: var(--color-muted);
+      display: grid;
+      place-items: center;
+      transition: transform .16s ease, color .16s ease, background .16s ease;
+    }
+    .bookmark.saved { color: var(--color-accent); background: var(--color-accent-light); }
+    .bookmark.bump { transform: scale(1.12); }
+    .bookmark svg.saved-fill { fill: currentColor; }
+
+    .skeleton-card {
+      min-height: 224px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #ECEFF3 25%, #F7F8FA 37%, #ECEFF3 63%);
+      background-size: 400% 100%;
+      animation: shimmer 1.25s ease infinite;
+    }
+    .empty-state { display: none; text-align: center; padding: 68px 12px; color: var(--color-muted); }
+    .empty-state p { margin: 0 0 12px; }
+    .load-more-wrap { display: flex; justify-content: center; margin-top: 24px; }
+    .load-more-wrap[hidden] { display: none; }
+
+    .showcase { padding: 6px 0 72px; }
+    .company-row { display: flex; gap: 14px; overflow-x: auto; padding: 4px 0 20px; }
+    .company-card {
+      position: relative;
+      width: 58px;
+      height: 58px;
+      flex: 0 0 auto;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface);
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow);
+      color: var(--color-accent);
+      font-weight: 700;
+    }
+    .company-card img { max-width: 42px; max-height: 42px; object-fit: contain; }
+    .company-card span { position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--color-primary); color: #fff; font-size: 12px; padding: 4px 7px; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .16s ease; }
+    .company-card:hover span { opacity: 1; }
+    .category-section { padding: 0 0 72px; }
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .category-card {
+      min-height: 86px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      text-align: left;
+      color: var(--color-primary);
+      transition: border-color .16s ease, background .16s ease, transform .16s ease;
+    }
+    .category-card:hover {
+      border-color: var(--color-accent);
+      background: var(--color-accent-light);
+      transform: translateY(-1px);
+    }
+    .category-name { display: block; font-weight: 700; font-size: 14px; }
+    .category-count { display: block; margin-top: 6px; color: var(--color-muted); font-size: 12px; }
+
+    .saved-fab {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 45;
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      background: var(--color-surface);
+      box-shadow: var(--shadow-strong);
+      color: var(--color-primary);
+      min-height: 42px;
+      padding: 0 16px;
+      font-weight: 700;
+      display: none;
+    }
+    .saved-fab.show { display: inline-flex; align-items: center; gap: 8px; }
+    .saved-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 380px;
+      max-width: 100%;
+      background: var(--color-surface);
+      z-index: 75;
+      transform: translateX(100%);
+      transition: transform .24s ease;
+      box-shadow: -12px 0 32px rgba(13,27,42,.12);
+      display: flex;
+      flex-direction: column;
+    }
+    .saved-drawer.open { transform: translateX(0); }
+    .drawer-head { height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid var(--color-border); }
+    .drawer-title { font-family: "Sora", sans-serif; font-weight: 700; color: var(--color-primary); }
+    .saved-list { padding: 12px; overflow: auto; flex: 1; display: grid; gap: 10px; align-content: start; }
+    .saved-row { border: 1px solid var(--color-border); border-radius: 8px; padding: 10px; display: grid; grid-template-columns: 42px minmax(0,1fr) auto; gap: 10px; align-items: center; }
+    .saved-row-logo { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden; }
+    .saved-row-logo img { max-width: 34px; max-height: 34px; object-fit: contain; }
+    .saved-row-title { font-weight: 700; color: var(--color-primary); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .saved-row-company { color: var(--color-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .drawer-foot { padding: 14px 20px; border-top: 1px solid var(--color-border); }
+
+    .footer { border-top: 1px solid var(--color-border); padding: 28px 0; color: var(--color-muted); }
+    .footer-top, .footer-bottom { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .footer-links { display: flex; gap: 18px; font-size: 14px; }
+    .footer-bottom { margin-top: 16px; font-size: 13px; }
+
+    @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+    @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 920px) {
+      .nav-actions { display: none; }
+      .hamburger { display: inline-flex; }
+      .brand-subtitle { display: none; }
+      h1 { font-size: 32px; }
+      .hero { padding-top: calc(var(--nav-height) + 48px); }
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+      .stat:nth-child(3) { border-left: 0; border-top: 1px solid var(--color-border); }
+      .stat:nth-child(4) { border-top: 1px solid var(--color-border); }
+      .layout { display: block; }
+      .sidebar { display: none; }
+      .mobile-filter-btn { display: inline-flex; }
+      .jobs-grid { grid-template-columns: 1fr; }
+      .toolbar { align-items: flex-start; flex-direction: column; }
+      .toolbar-actions { width: 100%; justify-content: space-between; flex-wrap: wrap; }
+      .jobs-grid.list .job-card { display: block; min-height: 224px; }
+      .jobs-grid.list .logo-wrap { margin-bottom: 14px; }
+      .footer-top, .footer-bottom { align-items: flex-start; flex-direction: column; }
+    }
+    @media (max-width: 560px) {
+      .container { padding: 0 18px; }
+      .hero-search { height: auto; flex-direction: column; overflow: visible; border-radius: 10px; }
+      .hero-search input { height: 52px; width: 100%; }
+      .hero-search button { width: 100%; border-radius: 0 0 9px 9px; height: 46px; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .stat { border-left: 0; border-top: 1px solid var(--color-border); }
+      .stat:first-child { border-top: 0; }
+      .sort-select { flex: 1; min-width: 180px; }
+      .saved-drawer { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar" id="topbar">
+    <div class="container nav">
+      <a class="brand" href="index.html" aria-label="CareerDirect home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M10 6h4a2 2 0 0 1 2 2v1H8V8a2 2 0 0 1 2-2Z"/><path d="M3 10h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8Z"/><path d="M3 14h18"/></svg>
+        </span>
+        <span><span class="brand-title">CareerDirect</span><span class="brand-subtitle">Official Company Career Portals</span></span>
+      </a>
+      <nav class="nav-actions" aria-label="Primary navigation">
+        <div class="nav-search">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="navSearch" type="search" placeholder="Search roles">
+        </div>
+        <button class="saved-link" id="savedLink" type="button">Save for Later <span class="count-badge" id="savedBadge">0</span></button>
+        <button class="outline-btn" type="button">Post a Job</button>
+      </nav>
+      <button class="icon-btn hamburger" id="hamburger" type="button" aria-label="Open menu">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="mobile-overlay" id="mobileOverlay" aria-hidden="true">
+    <div class="mobile-overlay-head">
+      <a class="brand" href="index.html"><span class="brand-title">CareerDirect</span></a>
+      <button class="icon-btn" id="closeMobile" type="button" aria-label="Close menu"><svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="mobile-links">
+      <a href="#jobs">Browse Jobs</a>
+      <button class="ghost-btn" id="mobileSavedLink" type="button">Save for Later</button>
+      <button class="ghost-btn" type="button">Post a Job</button>
+    </div>
+  </div>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="hero-label">ALL LISTINGS — OFFICIAL SOURCES</div>
+        <h1>The cleanest way to find jobs<br>directly from company portals.</h1>
+        <p class="hero-copy">Every listing links to the company's official career page. No redirects. No third parties.</p>
+        <div class="trust-row">Verified Sources · Direct Apply Links · Admin-Curated Only · Updated Daily</div>
+        <form class="hero-search" id="heroSearchForm" role="search">
+          <svg class="icon left-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="spinner" aria-hidden="true"></span>
+          <input id="heroSearch" type="search" placeholder="Search by job title, company, skill, or keyword...">
+          <button class="solid-btn" type="submit">Search</button>
+        </form>
+        <div class="quick-filter-row" id="quickFilterRow" aria-label="Quick category filters"></div>
+      </div>
+    </section>
+
+    <section class="stats-strip" aria-label="CareerDirect stats">
+      <div class="container stats-grid">
+        <div class="stat"><span class="stat-label">Active Roles</span><span class="stat-value" data-stat="totalJobs">0</span></div>
+        <div class="stat"><span class="stat-label">Companies Hiring</span><span class="stat-value" data-stat="totalCompanies">0</span></div>
+        <div class="stat"><span class="stat-label">Categories</span><span class="stat-value" data-stat="categories">0</span></div>
+        <div class="stat"><span class="stat-label">New This Week</span><span class="stat-value" data-stat="newThisWeek">0</span></div>
+      </div>
+    </section>
+
+    <section class="main" id="jobs">
+      <div class="container layout">
+        <aside class="sidebar" id="sidebarFilters" aria-label="Job filters"></aside>
+        <div>
+          <button class="outline-btn mobile-filter-btn" id="openFilters" type="button">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+            Filters
+            <span class="mobile-filter-count" id="mobileFilterCount">0</span>
+          </button>
+          <div class="active-filters" id="activeFilters" aria-label="Active filters"></div>
+          <div class="toolbar">
+            <div class="result-count" id="resultCount">Showing 0 of 0 results</div>
+            <div class="toolbar-actions">
+              <select class="sort-select" id="sortSelect" aria-label="Sort jobs">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="company">A-Z by Company</option>
+              </select>
+              <div class="view-toggle" aria-label="View mode">
+                <button id="gridView" class="active" type="button" aria-label="Grid view"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg></button>
+                <button id="listView" type="button" aria-label="List view"><svg class="icon" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
+              </div>
+            </div>
+          </div>
+          <section class="featured-section" id="featuredSection">
+            <p class="section-kicker">Featured Roles</p>
+            <div class="featured-row" id="featuredRow"></div>
+          </section>
+          <div class="jobs-grid" id="jobsGrid"></div>
+          <div class="empty-state" id="emptyState">
+            <p>No roles found matching your filters.</p>
+            <button class="reset-link" type="button" id="emptyReset">Reset filters</button>
+          </div>
+          <div class="load-more-wrap" id="loadMoreWrap" hidden>
+            <button class="outline-btn" id="loadMore" type="button">Load More</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="showcase">
+      <div class="container">
+        <p class="section-kicker">Companies Currently Hiring</p>
+        <div class="company-row" id="companyRow"></div>
+      </div>
+    </section>
+
+    <section class="category-section">
+      <div class="container">
+        <p class="section-kicker">Browse by Category</p>
+        <div class="category-grid" id="categoryGrid"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <a class="brand" href="index.html">
+          <span class="brand-mark"><svg class="icon" viewBox="0 0 24 24"><path d="M10 6h4a2 2 0 0 1 2 2v1H8V8a2 2 0 0 1 2-2Z"/><path d="M3 10h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8Z"/></svg></span>
+          <span class="brand-title">CareerDirect</span>
+        </a>
+        <div class="footer-links"><a href="#">About</a><a href="#">Privacy Policy</a><a href="#">Terms</a><a href="#">Contact</a></div>
+      </div>
+      <div class="footer-bottom">© 2025 CareerDirect. All job listings sourced directly from official company career pages.</div>
+    </div>
+  </footer>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <div class="filter-drawer" id="filterDrawer" aria-label="Mobile filters"></div>
+  <button class="saved-fab" id="savedFab" type="button">Saved <span id="savedFabCount">0</span></button>
+  <aside class="saved-drawer" id="savedDrawer" aria-label="Saved jobs drawer">
+    <div class="drawer-head">
+      <div class="drawer-title">Saved Jobs</div>
+      <button class="icon-btn" id="closeSaved" type="button" aria-label="Close saved jobs"><svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="saved-list" id="savedList"></div>
+    <div class="drawer-foot"><button class="outline-btn" id="clearSaved" type="button">Clear All Saved</button></div>
+  </aside>
+
+  <script>
+    const APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+    const STORAGE_KEY = 'careerdirect_saved_jobs';
+    const PAGE_SIZE = 12;
+
+    const state = {
+      jobs: [],
+      filtersMeta: { categories: [], types: [], experiences: [], locations: [], companies: [] },
+      filters: { q: '', category: [], type: '', experience: '', location: [], dateRange: 'any', featured: false, company: '' },
+      sort: 'newest',
+      view: 'grid',
+      visible: PAGE_SIZE,
+      loading: false
+    };
+
+    const els = {
+      topbar: document.getElementById('topbar'),
+      heroSearch: document.getElementById('heroSearch'),
+      heroSearchForm: document.getElementById('heroSearchForm'),
+      navSearch: document.getElementById('navSearch'),
+      sidebarFilters: document.getElementById('sidebarFilters'),
+      filterDrawer: document.getElementById('filterDrawer'),
+      drawerBackdrop: document.getElementById('drawerBackdrop'),
+      openFilters: document.getElementById('openFilters'),
+      mobileFilterCount: document.getElementById('mobileFilterCount'),
+      activeFilters: document.getElementById('activeFilters'),
+      jobsGrid: document.getElementById('jobsGrid'),
+      resultCount: document.getElementById('resultCount'),
+      featuredSection: document.getElementById('featuredSection'),
+      featuredRow: document.getElementById('featuredRow'),
+      emptyState: document.getElementById('emptyState'),
+      emptyReset: document.getElementById('emptyReset'),
+      loadMore: document.getElementById('loadMore'),
+      loadMoreWrap: document.getElementById('loadMoreWrap'),
+      sortSelect: document.getElementById('sortSelect'),
+      gridView: document.getElementById('gridView'),
+      listView: document.getElementById('listView'),
+      companyRow: document.getElementById('companyRow'),
+      categoryGrid: document.getElementById('categoryGrid'),
+      quickFilterRow: document.getElementById('quickFilterRow'),
+      savedBadge: document.getElementById('savedBadge'),
+      savedLink: document.getElementById('savedLink'),
+      mobileSavedLink: document.getElementById('mobileSavedLink'),
+      savedFab: document.getElementById('savedFab'),
+      savedFabCount: document.getElementById('savedFabCount'),
+      savedDrawer: document.getElementById('savedDrawer'),
+      savedList: document.getElementById('savedList'),
+      closeSaved: document.getElementById('closeSaved'),
+      clearSaved: document.getElementById('clearSaved'),
+      hamburger: document.getElementById('hamburger'),
+      closeMobile: document.getElementById('closeMobile'),
+      mobileOverlay: document.getElementById('mobileOverlay')
+    };
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    function init() {
+      hydrateFromUrl();
+      bindEvents();
+      renderSkeletons();
+      Promise.all([loadFilters(), loadStats(), loadJobs()]).then(() => updateSavedUi());
+    }
+
+    function bindEvents() {
+      window.addEventListener('scroll', () => els.topbar.classList.toggle('is-scrolled', window.scrollY > 60));
+      els.heroSearchForm.addEventListener('submit', event => { event.preventDefault(); updateSearch(els.heroSearch.value); });
+      els.heroSearch.addEventListener('input', debounce(() => updateSearch(els.heroSearch.value), 350));
+      els.navSearch.addEventListener('input', debounce(() => updateSearch(els.navSearch.value), 350));
+      els.sortSelect.addEventListener('change', () => { state.sort = els.sortSelect.value; renderJobs(); });
+      els.gridView.addEventListener('click', () => setView('grid'));
+      els.listView.addEventListener('click', () => setView('list'));
+      els.loadMore.addEventListener('click', () => { state.visible += PAGE_SIZE; renderJobs(); });
+      els.emptyReset.addEventListener('click', resetFilters);
+      els.openFilters.addEventListener('click', openFiltersDrawer);
+      els.drawerBackdrop.addEventListener('click', closeDrawers);
+      els.savedLink.addEventListener('click', openSavedDrawer);
+      els.mobileSavedLink.addEventListener('click', openSavedDrawer);
+      els.savedFab.addEventListener('click', openSavedDrawer);
+      els.closeSaved.addEventListener('click', closeDrawers);
+      els.clearSaved.addEventListener('click', () => { localStorage.setItem(STORAGE_KEY, '[]'); updateSavedUi(); renderJobs(); });
+      els.hamburger.addEventListener('click', () => els.mobileOverlay.classList.add('open'));
+      els.closeMobile.addEventListener('click', () => els.mobileOverlay.classList.remove('open'));
+      document.addEventListener('keydown', event => { if (event.key === 'Escape') closeDrawers(); });
+    }
+
+    async function loadJobs() {
+      state.loading = true;
+      els.heroSearchForm.classList.add('searching');
+      const params = new URLSearchParams();
+      const hasFilters = state.filters.category.length || state.filters.type || state.filters.experience || state.filters.location.length || state.filters.dateRange !== 'any' || state.filters.featured || state.filters.company;
+      params.set('action', state.filters.q && !hasFilters ? 'search' : 'filter');
+      if (state.filters.q) params.set('q', state.filters.q);
+      addFilterParam(params, 'category', state.filters.category);
+      addFilterParam(params, 'type', state.filters.type);
+      addFilterParam(params, 'experience', state.filters.experience);
+      addFilterParam(params, 'location', state.filters.location);
+      addFilterParam(params, 'dateRange', state.filters.dateRange !== 'any' ? state.filters.dateRange : '');
+      addFilterParam(params, 'featured', state.filters.featured ? 'true' : '');
+      addFilterParam(params, 'company', state.filters.company);
+
+      const response = await api(params);
+      state.jobs = response.success ? (response.data || []) : [];
+      state.visible = PAGE_SIZE;
+      state.loading = false;
+      els.heroSearchForm.classList.remove('searching');
+      renderJobs();
+      renderCompanies();
+      renderCategories();
+    }
+
+    async function loadStats() {
+      const response = await api(new URLSearchParams({ action: 'getStats' }));
+      if (!response.success) return;
+      const data = response.data || {};
+      animateStat('totalJobs', data.totalJobs || 0);
+      animateStat('totalCompanies', data.totalCompanies || 0);
+      animateStat('categories', Array.isArray(data.categories) ? data.categories.length : 0);
+      animateStat('newThisWeek', data.newThisWeek || 0);
+    }
+
+    async function loadFilters() {
+      const response = await api(new URLSearchParams({ action: 'getFilters' }));
+      if (response.success) state.filtersMeta = response.data || state.filtersMeta;
+      renderFilters();
+    }
+
+    async function api(params) {
+      const url = APPS_SCRIPT_URL + '?' + params.toString();
+      try {
+        const response = await fetch(url);
+        return await response.json();
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    }
+
+    function hydrateFromUrl() {
+      const params = new URLSearchParams(location.search);
+      state.filters.q = params.get('q') || '';
+      state.filters.category = params.getAll('category').concat(splitParam(params.get('categories')));
+      state.filters.type = params.get('type') || '';
+      state.filters.experience = params.get('experience') || '';
+      state.filters.location = params.getAll('location').concat(splitParam(params.get('locations')));
+      state.filters.dateRange = params.get('dateRange') || 'any';
+      state.filters.featured = params.get('featured') === 'true';
+      state.filters.company = params.get('company') || '';
+      els.heroSearch.value = state.filters.q;
+      els.navSearch.value = state.filters.q;
+    }
+
+    function updateUrl() {
+      const params = new URLSearchParams();
+      if (state.filters.q) params.set('q', state.filters.q);
+      state.filters.category.forEach(value => params.append('category', value));
+      if (state.filters.type) params.set('type', state.filters.type);
+      if (state.filters.experience) params.set('experience', state.filters.experience);
+      state.filters.location.forEach(value => params.append('location', value));
+      if (state.filters.dateRange !== 'any') params.set('dateRange', state.filters.dateRange);
+      if (state.filters.featured) params.set('featured', 'true');
+      if (state.filters.company) params.set('company', state.filters.company);
+      history.replaceState(null, '', params.toString() ? '?' + params.toString() : location.pathname);
+    }
+
+    function renderFilters() {
+      els.sidebarFilters.innerHTML = filterTemplate(false);
+      els.filterDrawer.innerHTML = filterTemplate(true);
+      bindFilterControls(els.sidebarFilters);
+      bindFilterControls(els.filterDrawer);
+      updateFilterCounts();
+      renderQuickFilters();
+      renderActiveFilters();
+    }
+
+    function filterTemplate(isDrawer) {
+      const scope = isDrawer ? 'drawer' : 'sidebar';
+      return `
+        <div class="sidebar-head">
+          <div class="sidebar-title">Filters</div>
+          <button class="clear-link" type="button" data-clear ${hasActiveFilters() ? '' : 'hidden'}>Clear all</button>
+          ${isDrawer ? '<button class="icon-btn" type="button" data-close-filters aria-label="Close filters"><svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' : ''}
+        </div>
+        ${checkboxGroup('Category', 'category', state.filtersMeta.categories || [])}
+        ${radioGroup('Job Type', 'type', ['All'].concat(state.filtersMeta.types || []), scope)}
+        ${radioGroup('Experience Level', 'experience', ['All'].concat(state.filtersMeta.experiences || []), scope)}
+        ${checkboxGroup('Location', 'location', state.filtersMeta.locations || [])}
+        ${radioGroup('Date Posted', 'dateRange', ['Any time', 'Last 24 hours', 'Last 7 days', 'Last 30 days'], scope)}
+        <div class="filter-group">
+          <label class="switch-row">Featured Only
+            <span class="switch"><input type="checkbox" data-filter="featured" ${state.filters.featured ? 'checked' : ''}><span class="slider"></span></span>
+          </label>
+        </div>
+      `;
+    }
+
+    function checkboxGroup(label, key, values) {
+      if (!values.length) return '';
+      return filterGroupShell(label, key, `<div class="filter-options">${
+        values.map(value => `<label class="choice"><input type="checkbox" data-filter="${key}" value="${escapeAttr(value)}" ${state.filters[key].includes(value) ? 'checked' : ''}>${escapeHtml(value)}</label>`).join('')
+      }</div>`);
+    }
+
+    function radioGroup(label, key, labels, scope) {
+      return filterGroupShell(label, key, `<div class="filter-options">${
+        labels.map(labelText => {
+          const value = radioValue(key, labelText);
+          const checked = (state.filters[key] || '') === value || (!state.filters[key] && value === '');
+          return `<label class="choice"><input type="radio" name="${scope}-${key}" data-filter="${key}" value="${escapeAttr(value)}" ${checked ? 'checked' : ''}>${escapeHtml(labelText)}</label>`;
+        }).join('')
+      }</div>`);
+    }
+
+    function filterGroupShell(label, key, body) {
+      return `<div class="filter-group">
+        <button class="filter-toggle" type="button" data-filter-toggle aria-expanded="true">
+          <span class="filter-label">${escapeHtml(label)}<span class="filter-count" data-count="${key}"></span></span>
+          <svg class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="filter-body open">${body}</div>
+      </div>`;
+    }
+
+    function radioValue(key, label) {
+      if (label === 'All' || label === 'Any time') return key === 'dateRange' ? 'any' : '';
+      if (label === 'Last 24 hours') return '24h';
+      if (label === 'Last 7 days') return '7d';
+      if (label === 'Last 30 days') return '30d';
+      return label;
+    }
+
+    function bindFilterControls(root) {
+      root.querySelectorAll('[data-filter-toggle]').forEach(button => {
+        button.addEventListener('click', () => {
+          const body = button.nextElementSibling;
+          const isOpen = body.classList.toggle('open');
+          button.setAttribute('aria-expanded', String(isOpen));
+        });
+      });
+      root.querySelectorAll('[data-filter]').forEach(input => {
+        input.addEventListener('change', () => {
+          const key = input.dataset.filter;
+          if (key === 'featured') state.filters.featured = input.checked;
+          else if (Array.isArray(state.filters[key])) {
+            const checked = root.querySelectorAll(`[data-filter="${key}"]:checked`);
+            state.filters[key] = Array.from(checked).map(item => item.value);
+          } else {
+            const checked = root.querySelector(`[data-filter="${key}"]:checked`);
+            state.filters[key] = checked ? checked.value : '';
+          }
+          syncFilterControls();
+          applyFilters();
+        });
+      });
+      root.querySelectorAll('[data-clear]').forEach(button => button.addEventListener('click', resetFilters));
+      root.querySelectorAll('[data-close-filters]').forEach(button => button.addEventListener('click', closeDrawers));
+    }
+
+    function syncFilterControls() {
+      document.querySelectorAll('[data-filter]').forEach(input => {
+        const key = input.dataset.filter;
+        if (key === 'featured') input.checked = state.filters.featured;
+        else if (Array.isArray(state.filters[key])) input.checked = state.filters[key].includes(input.value);
+        else input.checked = state.filters[key] === input.value || (!state.filters[key] && input.value === '');
+      });
+      document.querySelectorAll('[data-clear]').forEach(button => button.hidden = !hasActiveFilters());
+      updateFilterCounts();
+      renderQuickFilters();
+      renderActiveFilters();
+    }
+
+    function updateFilterCounts() {
+      const counts = {
+        category: state.filters.category.length,
+        type: state.filters.type ? 1 : 0,
+        experience: state.filters.experience ? 1 : 0,
+        location: state.filters.location.length,
+        dateRange: state.filters.dateRange !== 'any' ? 1 : 0
+      };
+      Object.keys(counts).forEach(key => {
+        document.querySelectorAll(`[data-count="${key}"]`).forEach(el => {
+          el.textContent = counts[key];
+          el.classList.toggle('show', counts[key] > 0);
+        });
+      });
+      const total = counts.category + counts.type + counts.experience + counts.location + counts.dateRange + (state.filters.featured ? 1 : 0) + (state.filters.company ? 1 : 0) + (state.filters.q ? 1 : 0);
+      if (els.mobileFilterCount) {
+        els.mobileFilterCount.textContent = total;
+        els.mobileFilterCount.classList.toggle('show', total > 0);
+      }
+    }
+
+    function renderActiveFilters() {
+      if (!els.activeFilters) return;
+      const pills = [];
+      if (state.filters.q) pills.push({ key: 'q', label: `Search: ${state.filters.q}` });
+      state.filters.category.forEach(value => pills.push({ key: 'category', value, label: `Category: ${value}` }));
+      if (state.filters.type) pills.push({ key: 'type', label: `Type: ${state.filters.type}` });
+      if (state.filters.experience) pills.push({ key: 'experience', label: `Experience: ${state.filters.experience}` });
+      state.filters.location.forEach(value => pills.push({ key: 'location', value, label: `Location: ${value}` }));
+      if (state.filters.dateRange !== 'any') pills.push({ key: 'dateRange', label: `Date: ${dateRangeLabel(state.filters.dateRange)}` });
+      if (state.filters.featured) pills.push({ key: 'featured', label: 'Featured only' });
+      if (state.filters.company) pills.push({ key: 'company', label: `Company: ${state.filters.company}` });
+
+      els.activeFilters.innerHTML = pills.map((pill, index) => `
+        <span class="filter-pill">${escapeHtml(pill.label)}
+          <button type="button" data-remove-filter="${index}" aria-label="Remove ${escapeAttr(pill.label)}">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </span>
+      `).join('');
+      els.activeFilters.classList.toggle('show', pills.length > 0);
+      els.activeFilters.querySelectorAll('[data-remove-filter]').forEach(button => {
+        button.addEventListener('click', () => removeFilter(pills[Number(button.dataset.removeFilter)]));
+      });
+    }
+
+    function removeFilter(pill) {
+      if (!pill) return;
+      if (pill.key === 'q') {
+        state.filters.q = '';
+        els.heroSearch.value = '';
+        els.navSearch.value = '';
+      } else if (Array.isArray(state.filters[pill.key])) {
+        state.filters[pill.key] = state.filters[pill.key].filter(value => value !== pill.value);
+      } else if (pill.key === 'featured') {
+        state.filters.featured = false;
+      } else if (pill.key === 'dateRange') {
+        state.filters.dateRange = 'any';
+      } else {
+        state.filters[pill.key] = '';
+      }
+      syncFilterControls();
+      applyFilters();
+    }
+
+    function dateRangeLabel(value) {
+      if (value === '24h') return 'Last 24 hours';
+      if (value === '7d') return 'Last 7 days';
+      if (value === '30d') return 'Last 30 days';
+      return 'Any time';
+    }
+
+    function renderQuickFilters() {
+      if (!els.quickFilterRow) return;
+      const categories = (state.filtersMeta.categories || []).slice(0, 6);
+      els.quickFilterRow.innerHTML = categories.map(category => `
+        <button class="quick-filter ${state.filters.category.includes(category) ? 'active' : ''}" type="button" data-quick-category="${escapeAttr(category)}">${escapeHtml(category)}</button>
+      `).join('');
+      els.quickFilterRow.querySelectorAll('[data-quick-category]').forEach(button => {
+        button.addEventListener('click', () => {
+          const category = button.dataset.quickCategory;
+          state.filters.category = state.filters.category.includes(category)
+            ? state.filters.category.filter(value => value !== category)
+            : state.filters.category.concat(category);
+          syncFilterControls();
+          applyFilters();
+          document.getElementById('jobs').scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+    }
+
+    function applyFilters() {
+      updateUrl();
+      loadJobs();
+    }
+
+    function resetFilters() {
+      state.filters = { q: '', category: [], type: '', experience: '', location: [], dateRange: 'any', featured: false, company: '' };
+      els.heroSearch.value = '';
+      els.navSearch.value = '';
+      syncFilterControls();
+      applyFilters();
+      closeDrawers();
+    }
+
+    function updateSearch(value) {
+      state.filters.q = value.trim();
+      els.heroSearch.value = value;
+      els.navSearch.value = value;
+      applyFilters();
+    }
+
+    function renderJobs() {
+      const sorted = sortJobs(state.jobs);
+      const normalJobs = sorted.filter(job => !job.featured);
+      const featuredJobs = sorted.filter(job => job.featured);
+      const visibleJobs = normalJobs.slice(0, state.visible);
+      els.jobsGrid.classList.toggle('list', state.view === 'list');
+      els.jobsGrid.innerHTML = visibleJobs.map((job, index) => jobCard(job, index)).join('');
+      els.featuredRow.innerHTML = featuredJobs.map((job, index) => jobCard(job, index)).join('');
+      els.featuredSection.style.display = featuredJobs.length ? 'block' : 'none';
+      els.emptyState.style.display = sorted.length ? 'none' : 'block';
+      els.loadMoreWrap.hidden = visibleJobs.length >= normalJobs.length;
+      els.resultCount.textContent = `Showing ${Math.min(sorted.length, featuredJobs.length + visibleJobs.length)} of ${sorted.length} results`;
+      bindJobCards();
+    }
+
+    function jobCard(job, index) {
+      const saved = isSaved(job.id);
+      const skills = (job.skills || []).slice(0, 3);
+      const extraSkills = (job.skills || []).length - skills.length;
+      const tags = [job.location, job.type, job.experience, job.category].filter(Boolean);
+      return `
+        <article class="job-card" style="animation-delay:${Math.min(index * 35, 300)}ms">
+          <button class="bookmark ${saved ? 'saved' : ''}" type="button" data-save="${escapeAttr(job.id)}" aria-label="Save job">
+            <svg class="icon ${saved ? 'saved-fill' : ''}" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>
+          </button>
+          <div class="logo-wrap">${job.logoUrl ? `<img src="${escapeAttr(job.logoUrl)}" alt="${escapeAttr(job.company)} logo" loading="lazy">` : ''}</div>
+          <div>
+            <h2 class="job-title">${escapeHtml(job.title)}</h2>
+            ${tags.length ? `<div class="tags">${tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
+            ${skills.length ? `<div class="skills">${skills.map(skill => `<span class="skill">${escapeHtml(skill)}</span>`).join('')}${extraSkills > 0 ? `<span class="skill">+${extraSkills} more</span>` : ''}</div>` : ''}
+          </div>
+          ${job.salary ? `<div class="salary">${escapeHtml(job.salary)}</div>` : '<div></div>'}
+          <div class="card-footer">
+            <span class="posted">${formatDisplayDate(job.postedDate)}</span>
+            <a class="arrow-link" href="job.html?id=${encodeURIComponent(job.id)}" aria-label="View ${escapeAttr(job.title)}">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </article>
+      `;
+    }
+
+    function bindJobCards() {
+      document.querySelectorAll('[data-save]').forEach(button => {
+        button.addEventListener('click', event => {
+          event.preventDefault();
+          const job = state.jobs.find(item => item.id === button.dataset.save);
+          if (!job) return;
+          toggleSave(job);
+          button.classList.add('bump');
+          setTimeout(() => button.classList.remove('bump'), 180);
+          renderJobs();
+        });
+      });
+    }
+
+    function renderCompanies() {
+      const map = new Map();
+      state.jobs.forEach(job => {
+        if (job.company && !map.has(job.company)) map.set(job.company, job);
+      });
+      els.companyRow.innerHTML = Array.from(map.values()).map(job => {
+        const initials = job.company.split(/\s+/).slice(0, 2).map(word => word[0]).join('').toUpperCase();
+        return `<button class="company-card" type="button" data-company="${escapeAttr(job.company)}">
+          ${job.logoUrl ? `<img src="${escapeAttr(job.logoUrl)}" alt="${escapeAttr(job.company)} logo" loading="lazy">` : escapeHtml(initials)}
+          <span>${escapeHtml(job.company)}</span>
+        </button>`;
+      }).join('');
+      els.companyRow.querySelectorAll('[data-company]').forEach(button => {
+        button.addEventListener('click', () => {
+          state.filters.company = button.dataset.company;
+          applyFilters();
+          document.getElementById('jobs').scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+    }
+
+    function renderCategories() {
+      if (!els.categoryGrid) return;
+      const counts = {};
+      state.jobs.forEach(job => {
+        if (job.category) counts[job.category] = (counts[job.category] || 0) + 1;
+      });
+      const categories = Object.keys(counts).sort((a, b) => a.localeCompare(b));
+      els.categoryGrid.innerHTML = categories.length ? categories.map(category => `
+        <button class="category-card" type="button" data-category-card="${escapeAttr(category)}">
+          <span class="category-name">${escapeHtml(category)}</span>
+          <span class="category-count">${counts[category]} role${counts[category] === 1 ? '' : 's'}</span>
+        </button>
+      `).join('') : '';
+      els.categoryGrid.querySelectorAll('[data-category-card]').forEach(button => {
+        button.addEventListener('click', () => {
+          const category = button.dataset.categoryCard;
+          state.filters.category = [category];
+          syncFilterControls();
+          applyFilters();
+          document.getElementById('jobs').scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+    }
+
+    function sortJobs(jobs) {
+      const sorted = jobs.slice();
+      if (state.sort === 'oldest') sorted.sort((a, b) => new Date(a.postedDate) - new Date(b.postedDate));
+      else if (state.sort === 'company') sorted.sort((a, b) => (a.company || '').localeCompare(b.company || ''));
+      else sorted.sort((a, b) => new Date(b.postedDate) - new Date(a.postedDate));
+      return sorted.sort((a, b) => Number(b.featured) - Number(a.featured));
+    }
+
+    function renderSkeletons() {
+      els.jobsGrid.innerHTML = Array.from({ length: 6 }, () => '<div class="skeleton-card"></div>').join('');
+    }
+
+    function setView(view) {
+      state.view = view;
+      els.gridView.classList.toggle('active', view === 'grid');
+      els.listView.classList.toggle('active', view === 'list');
+      renderJobs();
+    }
+
+    function openFiltersDrawer() {
+      els.filterDrawer.classList.add('open');
+      els.drawerBackdrop.classList.add('open');
+      document.body.classList.add('locked');
+    }
+
+    function openSavedDrawer() {
+      updateSavedUi();
+      els.savedDrawer.classList.add('open');
+      els.drawerBackdrop.classList.add('open');
+      document.body.classList.add('locked');
+      els.mobileOverlay.classList.remove('open');
+    }
+
+    function closeDrawers() {
+      els.filterDrawer.classList.remove('open');
+      els.savedDrawer.classList.remove('open');
+      els.drawerBackdrop.classList.remove('open');
+      document.body.classList.remove('locked');
+    }
+
+    function getSaved() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+      catch (error) { return []; }
+    }
+
+    function isSaved(id) {
+      return getSaved().some(item => item.id === id);
+    }
+
+    function toggleSave(job) {
+      const saved = getSaved();
+      const exists = saved.some(item => item.id === job.id);
+      const next = exists
+        ? saved.filter(item => item.id !== job.id)
+        : saved.concat([{ id: job.id, title: job.title, company: job.company, logoUrl: job.logoUrl, savedAt: new Date().toISOString() }]);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      updateSavedUi();
+    }
+
+    function updateSavedUi() {
+      const saved = getSaved();
+      els.savedBadge.textContent = saved.length;
+      els.savedBadge.classList.toggle('show', saved.length > 0);
+      els.savedFabCount.textContent = saved.length;
+      els.savedFab.classList.toggle('show', saved.length > 0);
+      els.savedList.innerHTML = saved.length ? saved.map(item => `
+        <div class="saved-row">
+          <div class="saved-row-logo">${item.logoUrl ? `<img src="${escapeAttr(item.logoUrl)}" alt="${escapeAttr(item.company)} logo">` : ''}</div>
+          <div><div class="saved-row-title">${escapeHtml(item.title)}</div><div class="saved-row-company">${escapeHtml(item.company)}</div></div>
+          <div>
+            <a class="icon-btn" href="job.html?id=${encodeURIComponent(item.id)}" aria-label="View details"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+            <button class="icon-btn" type="button" data-remove="${escapeAttr(item.id)}" aria-label="Remove saved job"><svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+          </div>
+        </div>
+      `).join('') : '<p class="result-count">No saved jobs yet.</p>';
+      els.savedList.querySelectorAll('[data-remove]').forEach(button => {
+        button.addEventListener('click', () => {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(getSaved().filter(item => item.id !== button.dataset.remove)));
+          updateSavedUi();
+          renderJobs();
+        });
+      });
+    }
+
+    function animateStat(key, value) {
+      const el = document.querySelector(`[data-stat="${key}"]`);
+      if (!el) return;
+      const start = performance.now();
+      const duration = 1200;
+      function frame(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(value * eased);
+        if (progress < 1) requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function hasActiveFilters() {
+      return state.filters.q || state.filters.category.length || state.filters.type || state.filters.experience || state.filters.location.length || state.filters.dateRange !== 'any' || state.filters.featured || state.filters.company;
+    }
+
+    function addFilterParam(params, key, value) {
+      if (Array.isArray(value) && value.length) params.set(key, value.join(','));
+      else if (!Array.isArray(value) && value) params.set(key, value);
+    }
+
+    function splitParam(value) {
+      return value ? value.split(',').map(item => item.trim()).filter(Boolean) : [];
+    }
+
+    function debounce(fn, wait) {
+      let timer;
+      return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), wait);
+      };
+    }
+
+    function formatDisplayDate(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      if (isNaN(date.getTime())) return escapeHtml(value);
+      const diffDays = Math.floor((Date.now() - date.getTime()) / 86400000);
+      if (diffDays <= 0) return 'Today';
+      if (diffDays === 1) return '1 day ago';
+      if (diffDays <= 30) return `${diffDays} days ago`;
+      return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/`/g, '&#96;');
+    }
+  </script>
+</body>
+</html>
