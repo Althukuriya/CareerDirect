@@ -41,58 +41,6 @@ SETUP:
       --nav-height: 74px;
     }
 
-
-    /* ===== AD UNIT STYLES ===== */
-    .ad-wrap { display:flex; justify-content:center; align-items:center; width:100%; overflow:hidden; }
-    .ad-label { text-align:center; font-size:10px; color:var(--color-muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }
-
-    .ad-hero-banner { padding:18px 0 0; }
-    @media(max-width:768px){ .ad-hero-banner { display:none; } }
-
-    .ad-stats-inline { padding:14px 0; border-top:1px solid var(--color-border); }
-    @media(max-width:520px){ .ad-stats-inline { display:none; } }
-
-    .ad-footer-leaderboard { padding:22px 0; border-top:1px solid var(--color-border); }
-    @media(max-width:768px){ .ad-footer-leaderboard { display:none; } }
-
-    .ad-native-section { padding:0 0 14px; }
-
-    .ad-mobile-sticky {
-      display:none; position:fixed; bottom:0; left:0; right:0; z-index:44;
-      background:var(--color-surface); border-top:1px solid var(--color-border);
-      justify-content:center; align-items:center; padding:4px 0;
-    }
-    @media(max-width:560px){ .ad-mobile-sticky { display:flex; } body { padding-bottom:56px; } }
-
-    .ad-300x250-sidebar { margin-top:18px; display:flex; flex-direction:column; align-items:center; }
-
-    .ad-skyscraper-col {
-      position:sticky; top:calc(var(--nav-height) + 22px);
-      display:flex; flex-direction:column; align-items:center; gap:12px;
-    }
-    @media(max-width:1100px){ .ad-skyscraper-col { display:none; } }
-    @media(min-width:1101px){ .layout-with-sky { grid-template-columns: 280px minmax(0,1fr) 170px !important; } }
-
-    /* ===== SPONSORED JOB CARD STYLES ===== */
-    .job-card.is-sponsored {
-      border-top-color:#7C3AED;
-      cursor:pointer;
-    }
-    .job-card.is-sponsored:hover { border-top-color:#6D28D9; }
-    .sponsored-badge {
-      border:1px solid #DDD6FE; background:#F5F3FF; color:#6D28D9;
-      border-radius:999px; padding:3px 8px; font-size:11px; font-weight:700; white-space:nowrap;
-    }
-    .job-card.is-sponsored .arrow-link { border-color:#7C3AED; color:#7C3AED; }
-    .job-card.is-sponsored .arrow-link:hover { background:#7C3AED; color:#fff; }
-    .sp-logo {
-      width:36px; height:36px; border-radius:8px;
-      background:linear-gradient(135deg,#7C3AED,#A855F7);
-      display:flex; align-items:center; justify-content:center;
-      color:#fff; font-weight:700; font-size:13px; font-family:"Sora",sans-serif;
-      flex-shrink:0;
-    }
-
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
@@ -559,6 +507,76 @@ SETUP:
     .footer-links { display: flex; gap: 18px; font-size: 14px; }
     .footer-bottom { margin-top: 16px; font-size: 13px; }
 
+
+    /* ── Ad Unit Styles ── */
+    .ad-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      overflow: hidden;
+    }
+    .ad-wrap iframe { display: block; }
+    .ad-label {
+      text-align: center;
+      font-size: 10px;
+      color: var(--color-muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    /* Hero banner (728x90) — hidden on small screens */
+    .ad-hero-banner { padding: 18px 0 0; }
+    @media (max-width: 768px) { .ad-hero-banner { display: none; } }
+    /* Stats strip inline (468x60) — hidden on small screens */
+    .ad-stats-inline { padding: 16px 0; border-top: 1px solid var(--color-border); }
+    @media (max-width: 520px) { .ad-stats-inline { display: none; } }
+    /* Sidebar ad box */
+    .ad-sidebar-box { margin-top: 20px; }
+    /* Between jobs and companies section */
+    .ad-mid-page { padding: 28px 0; }
+    /* Mobile sticky banner (320x50) — show only on small */
+    .ad-mobile-sticky {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 44;
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-border);
+      justify-content: center;
+      align-items: center;
+      padding: 4px 0;
+    }
+    @media (max-width: 560px) {
+      .ad-mobile-sticky { display: flex; }
+      body { padding-bottom: 58px; }
+    }
+    /* Footer leaderboard */
+    .ad-footer-leaderboard { padding: 24px 0; border-top: 1px solid var(--color-border); }
+    @media (max-width: 768px) { .ad-footer-leaderboard { display: none; } }
+    /* Smartlink / Native banner wrapper */
+    .ad-native-section { padding: 0 0 16px; }
+    /* 300x250 rectangle in sidebar */
+    .ad-300x250-sidebar { margin-top: 20px; display: flex; flex-direction: column; align-items: center; }
+    /* 160x600 skyscraper — right column desktop only */
+    .ad-skyscraper-col {
+      position: sticky;
+      top: calc(var(--nav-height) + 22px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    @media (max-width: 1100px) { .ad-skyscraper-col { display: none; } }
+    /* Three-column layout when skyscraper is visible */
+    @media (min-width: 1101px) {
+      .layout-with-sky {
+        grid-template-columns: 280px minmax(0,1fr) 168px !important;
+      }
+    }
+
     @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
     @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -780,12 +798,21 @@ SETUP:
       </div>
     </section>
 
+
     <div class="ad-hero-banner">
       <div class="container">
-        <p class="ad-label">Advertisement</p>
+        <div class="ad-label">Advertisement</div>
         <div class="ad-wrap">
-          <script>atOptions={'key':'56bfa774f6809634847ca20c73aa20d8','format':'iframe','height':90,'width':728,'params':{}};</script>
-          <script src="//www.highperformanceformat.com/56bfa774f6809634847ca20c73aa20d8/invoke.js"></script>
+          <script>
+            atOptions = {
+              'key' : '56bfa774f6809634847ca20c73aa20d8',
+              'format' : 'iframe',
+              'height' : 90,
+              'width' : 728,
+              'params' : {}
+            };
+          </script>
+          <script type="text/javascript" src="//www.highperformanceformat.com/56bfa774f6809634847ca20c73aa20d8/invoke.js"></script>
         </div>
       </div>
     </div>
@@ -799,14 +826,23 @@ SETUP:
       </div>
     </section>
 
-
-    <div class="container"><div class="ad-stats-inline">
-      <p class="ad-label">Advertisement</p>
-      <div class="ad-wrap">
-        <script>atOptions={'key':'6b6b091ff129ed52c8cd0259e63d7b6e','format':'iframe','height':60,'width':468,'params':{}};</script>
-        <script src="//www.highperformanceformat.com/6b6b091ff129ed52c8cd0259e63d7b6e/invoke.js"></script>
+    <div class="container">
+      <div class="ad-stats-inline">
+        <div class="ad-label">Advertisement</div>
+        <div class="ad-wrap">
+          <script>
+            atOptions = {
+              'key' : '6b6b091ff129ed52c8cd0259e63d7b6e',
+              'format' : 'iframe',
+              'height' : 60,
+              'width' : 468,
+              'params' : {}
+            };
+          </script>
+          <script type="text/javascript" src="//www.highperformanceformat.com/6b6b091ff129ed52c8cd0259e63d7b6e/invoke.js"></script>
+        </div>
       </div>
-    </div></div>
+    </div>
 
     <section class="main" id="jobs">
       <div class="container layout layout-with-sky">
@@ -846,15 +882,33 @@ SETUP:
           </div>
         </div>
 
-          <!-- Skyscraper Ad Column -->
           <div class="ad-skyscraper-col">
-            <p class="ad-label">Advertisement</p>
-            <script>atOptions={'key':'31b8f86a284434682a2fd752c3549af6','format':'iframe','height':600,'width':160,'params':{}};</script>
-            <script src="//www.highperformanceformat.com/31b8f86a284434682a2fd752c3549af6/invoke.js"></script>
-            <p class="ad-label" style="margin-top:10px;">Advertisement</p>
-            <script>atOptions={'key':'5c4cabac383480c0878a6d06e7c9b50a','format':'iframe','height':300,'width':160,'params':{}};</script>
-            <script src="//www.highperformanceformat.com/5c4cabac383480c0878a6d06e7c9b50a/invoke.js"></script>
+            <div class="ad-label" style="font-size:10px;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;">Advertisement</div>
+            <script>
+              atOptions = {
+                'key' : '31b8f86a284434682a2fd752c3549af6',
+                'format' : 'iframe',
+                'height' : 600,
+                'width' : 160,
+                'params' : {}
+              };
+            </script>
+            <script type="text/javascript" src="//www.highperformanceformat.com/31b8f86a284434682a2fd752c3549af6/invoke.js"></script>
+            <div style="margin-top:12px;">
+              <div class="ad-label" style="font-size:10px;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">Advertisement</div>
+              <script>
+                atOptions = {
+                  'key' : '5c4cabac383480c0878a6d06e7c9b50a',
+                  'format' : 'iframe',
+                  'height' : 300,
+                  'width' : 160,
+                  'params' : {}
+                };
+              </script>
+              <script type="text/javascript" src="//www.highperformanceformat.com/5c4cabac383480c0878a6d06e7c9b50a/invoke.js"></script>
+            </div>
           </div>
+
       </div>
     </section>
 
@@ -865,10 +919,11 @@ SETUP:
       </div>
     </section>
 
+
     <section class="ad-native-section">
       <div class="container">
-        <p class="ad-label">Sponsored</p>
-        <script async data-cfasync="false" src="https://pl29542659.effectivecpmnetwork.com/53740cffffdde0bdbfebcc93004d1980/invoke.js"></script>
+        <div class="ad-label">Sponsored</div>
+        <script async="async" data-cfasync="false" src="https://pl29542659.effectivecpmnetwork.com/53740cffffdde0bdbfebcc93004d1980/invoke.js"></script>
         <div id="container-53740cffffdde0bdbfebcc93004d1980"></div>
       </div>
     </section>
@@ -883,10 +938,18 @@ SETUP:
 
   <div class="ad-footer-leaderboard">
     <div class="container">
-      <p class="ad-label">Advertisement</p>
+      <div class="ad-label">Advertisement</div>
       <div class="ad-wrap">
-        <script>atOptions={'key':'56bfa774f6809634847ca20c73aa20d8','format':'iframe','height':90,'width':728,'params':{}};</script>
-        <script src="//www.highperformanceformat.com/56bfa774f6809634847ca20c73aa20d8/invoke.js"></script>
+        <script>
+          atOptions = {
+            'key' : '56bfa774f6809634847ca20c73aa20d8',
+            'format' : 'iframe',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+          };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/56bfa774f6809634847ca20c73aa20d8/invoke.js"></script>
       </div>
     </div>
   </div>
@@ -1079,6 +1142,29 @@ SETUP:
       history.replaceState(null, '', params.toString() ? '?' + params.toString() : location.pathname);
     }
 
+
+    // Inject 300x250 ad into sidebar after filters render
+    function injectSidebarAds() {
+      const sidebar = document.getElementById('sidebarFilters');
+      if (!sidebar || sidebar.querySelector('.ad-sidebar-injected')) return;
+      const adBox = document.createElement('div');
+      adBox.className = 'ad-sidebar-injected ad-300x250-sidebar';
+      adBox.innerHTML = `
+        <div class="ad-label" style="font-size:10px;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;margin-top:8px;">Advertisement</div>
+        <script>
+          atOptions = {
+            'key' : 'dd06bf8098d9692946b38a9f2f5f2017',
+            'format' : 'iframe',
+            'height' : 250,
+            'width' : 300,
+            'params' : {}
+          };
+        <\/script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/dd06bf8098d9692946b38a9f2f5f2017/invoke.js"><\/script>
+      `;
+      sidebar.appendChild(adBox);
+    }
+
     function renderFilters() {
       els.sidebarFilters.innerHTML = filterTemplate(false);
       els.filterDrawer.innerHTML = filterTemplate(true);
@@ -1087,7 +1173,7 @@ SETUP:
       updateFilterCounts();
       renderQuickFilters();
       renderActiveFilters();
-      setTimeout(injectSidebarAd, 100);
+      setTimeout(injectSidebarAds, 100);
     }
 
     function filterTemplate(isDrawer) {
@@ -1184,7 +1270,7 @@ SETUP:
       updateFilterCounts();
       renderQuickFilters();
       renderActiveFilters();
-      setTimeout(injectSidebarAd, 100);
+      setTimeout(injectSidebarAds, 100);
     }
 
     function updateFilterCounts() {
@@ -1299,113 +1385,6 @@ SETUP:
       applyFilters();
     }
 
-
-    // ================================================
-    // SIDEBAR 300x250 AD — injected after filters render
-    // ================================================
-    function injectSidebarAd() {
-      var sidebar = document.getElementById('sidebarFilters');
-      if (!sidebar || sidebar.querySelector('.sidebar-ad-box')) return;
-      var box = document.createElement('div');
-      box.className = 'sidebar-ad-box ad-300x250-sidebar';
-      var lbl = document.createElement('p');
-      lbl.className = 'ad-label';
-      lbl.textContent = 'Advertisement';
-      box.appendChild(lbl);
-      var s1 = document.createElement('script');
-      s1.text = "atOptions={'key':'dd06bf8098d9692946b38a9f2f5f2017','format':'iframe','height':250,'width':300,'params':{}};";
-      box.appendChild(s1);
-      var s2 = document.createElement('script');
-      s2.src = '//www.highperformanceformat.com/dd06bf8098d9692946b38a9f2f5f2017/invoke.js';
-      box.appendChild(s2);
-      sidebar.appendChild(box);
-    }
-
-    // ================================================
-    // SPONSORED JOB CARDS (SMARTLINK)
-    // ================================================
-    var SMARTLINK = 'https://www.effectivecpmnetwork.com/ikcv0rzsz?key=e10d625203dc29f3fd07a4e40d70210a';
-
-    var sponsoredJobs = [
-      { title:'Customer Support Executive', company:'Hiring Now India',    location:'Work From Home',   type:'Full Time', exp:'Fresher',    salary:'\u20b915,000\u2013\u20b925,000/mo', skills:['Communication','MS Office','English'],  ini:'HN' },
-      { title:'Data Entry Operator',        company:'QuickHire Solutions', location:'Remote / Anywhere',type:'Part Time', exp:'Entry Level', salary:'\u20b912,000\u2013\u20b918,000/mo', skills:['Typing','Excel','Accuracy'],            ini:'QH' },
-      { title:'Sales & Marketing Exec',     company:'FastGrowth Corp',     location:'Karnataka',        type:'Full Time', exp:'0\u20132 Yrs',salary:'\u20b918,000\u2013\u20b930,000/mo', skills:['Sales','Marketing','Target'],           ini:'FG' },
-      { title:'Accounts Assistant',         company:'TopTalent Recruiters',location:'Hubli / Dharwad',  type:'Full Time', exp:'1\u20133 Yrs',salary:'\u20b920,000\u2013\u20b928,000/mo', skills:['Tally','GST','Accounting'],             ini:'TT' },
-      { title:'Delivery Executive',         company:'SwiftJobs Network',   location:'Gadag / Belagavi', type:'Full Time', exp:'Fresher OK',  salary:'\u20b914,000\u2013\u20b922,000/mo', skills:['Driving Licence','Navigation','Timing'], ini:'SJ' },
-      { title:'Computer Operator',          company:'BrightCareer India',  location:'Karnataka',        type:'Full Time', exp:'Any',         salary:'\u20b913,000\u2013\u20b920,000/mo', skills:['Typing','Computer Basics','Internet'],  ini:'BC' }
-    ];
-
-    function buildSponsoredCard(sp, animDelay) {
-      var article = document.createElement('article');
-      article.className = 'job-card is-sponsored';
-      article.style.animationDelay = animDelay + 'ms';
-      article.setAttribute('role', 'link');
-      article.setAttribute('tabindex', '0');
-      article.addEventListener('click', function() { window.open(SMARTLINK, '_blank'); });
-      article.addEventListener('keydown', function(e) { if(e.key==='Enter') window.open(SMARTLINK,'_blank'); });
-
-      var tags = [sp.location, sp.type, sp.exp].filter(Boolean);
-      var tagsHtml = tags.map(function(t){ return '<span class="tag">'+t+'</span>'; }).join('');
-      var skillsHtml = sp.skills.map(function(s){ return '<span class="skill">'+s+'</span>'; }).join('');
-
-      article.innerHTML = [
-        '<div class="card-head">',
-          '<div class="company-block">',
-            '<div class="logo-wrap"><div class="sp-logo">'+sp.ini+'</div></div>',
-          '</div>',
-          '<span class="sponsored-badge">Sponsored</span>',
-        '</div>',
-        '<div>',
-          '<h2 class="job-title">'+sp.title+'</h2>',
-          '<div style="color:var(--color-muted);font-size:13px;font-weight:600;margin-bottom:8px;">'+sp.company+'</div>',
-          tags.length ? '<div class="tags">'+tagsHtml+'</div>' : '',
-          sp.skills.length ? '<div class="skills" style="margin-top:6px;">'+skillsHtml+'</div>' : '',
-        '</div>',
-        '<div class="salary">'+sp.salary+'</div>',
-        '<div class="card-footer">',
-          '<span class="posted">Today</span>',
-          '<a class="arrow-link" href="'+SMARTLINK+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" aria-label="View '+sp.title+'">',
-            '<svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg>',
-          '</a>',
-        '</div>'
-      ].join('');
-      return article;
-    }
-
-    function insertSponsoredCards() {
-      var grid = document.getElementById('jobsGrid');
-      if (!grid) return;
-      var realCards = grid.querySelectorAll('article.job-card:not(.is-sponsored)');
-      if (realCards.length === 0) return;
-      // Remove old sponsored cards first
-      grid.querySelectorAll('.is-sponsored').forEach(function(el){ el.remove(); });
-      // Re-query real cards after cleanup
-      realCards = grid.querySelectorAll('article.job-card');
-      var insertAt = [1, 4, 7]; // insert AFTER these indexes (0-based)
-      var spIdx = 0;
-      insertAt.forEach(function(pos) {
-        if (spIdx >= sponsoredJobs.length) return;
-        var afterCard = realCards[pos];
-        if (!afterCard) {
-          // Append at end if not enough cards
-          if (spIdx < sponsoredJobs.length) {
-            grid.appendChild(buildSponsoredCard(sponsoredJobs[spIdx], spIdx * 35));
-            spIdx++;
-          }
-          return;
-        }
-        afterCard.after(buildSponsoredCard(sponsoredJobs[spIdx], spIdx * 35));
-        spIdx++;
-      });
-      // Always show at least 2 sponsored if very few real jobs
-      if (realCards.length < 3 && spIdx < 2) {
-        while(spIdx < 2 && spIdx < sponsoredJobs.length) {
-          grid.appendChild(buildSponsoredCard(sponsoredJobs[spIdx], spIdx*35));
-          spIdx++;
-        }
-      }
-    }
-
     function renderJobs() {
       const sorted = sortJobs(state.jobs);
       const normalJobs = sorted.filter(job => !job.featured);
@@ -1419,7 +1398,6 @@ SETUP:
       els.loadMoreWrap.hidden = visibleJobs.length >= normalJobs.length;
       els.resultCount.textContent = `Showing ${Math.min(sorted.length, featuredJobs.length + visibleJobs.length)} of ${sorted.length} results`;
       bindJobCards();
-      setTimeout(insertSponsoredCards, 0);
     }
 
     function jobCard(job, index) {
@@ -1651,14 +1629,21 @@ SETUP:
       return escapeHtml(value).replace(/`/g, '&#96;');
     }
   </script>
-
-  <!-- Popunder / Social Bar -->
+  <!-- Popunder / Social Bar Ad -->
   <script src="https://pl29542660.effectivecpmnetwork.com/59/82/20/59822091fd4984823045cdfc99af4f0a.js"></script>
-
-  <!-- Mobile Sticky Banner -->
-  <div class="ad-mobile-sticky">
-    <script>atOptions={'key':'6b6b091ff129ed52c8cd0259e63d7b6e','format':'iframe','height':60,'width':468,'params':{}};</script>
-    <script src="//www.highperformanceformat.com/6b6b091ff129ed52c8cd0259e63d7b6e/invoke.js"></script>
+  <!-- Mobile Sticky Banner (320x50 equivalent) -->
+  <div class="ad-mobile-sticky" id="adMobileSticky">
+    <script>
+      atOptions = {
+        'key' : '6b6b091ff129ed52c8cd0259e63d7b6e',
+        'format' : 'iframe',
+        'height' : 60,
+        'width' : 468,
+        'params' : {}
+      };
+    </script>
+    <script type="text/javascript" src="//www.highperformanceformat.com/6b6b091ff129ed52c8cd0259e63d7b6e/invoke.js"></script>
   </div>
+  <!-- Smartlink: used as contextual link in footer area -->
 </body>
 </html>
