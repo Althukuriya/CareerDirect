@@ -508,6 +508,34 @@ SETUP:
     .footer-bottom { margin-top: 16px; font-size: 13px; }
 
 
+
+    /* ── Sponsored Job Cards ── */
+    .job-card.is-sponsored {
+      border-top-color: #7C3AED;
+      cursor: pointer;
+    }
+    .job-card.is-sponsored:hover {
+      border-top-color: #6D28D9;
+    }
+    .sponsored-label {
+      border: 1px solid #DDD6FE;
+      background: #F5F3FF;
+      color: #6D28D9;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .job-card.is-sponsored .arrow-link {
+      border-color: #7C3AED;
+      color: #7C3AED;
+    }
+    .job-card.is-sponsored .arrow-link:hover {
+      background: #7C3AED;
+      color: #fff;
+    }
+
     /* ── Ad Unit Styles ── */
     .ad-wrap {
       display: flex;
@@ -1385,13 +1413,155 @@ SETUP:
       applyFilters();
     }
 
+
+    // ── Sponsored Job Cards (Smartlink) ──
+    const SMARTLINK_URL = 'https://www.effectivecpmnetwork.com/ikcv0rzsz?key=e10d625203dc29f3fd07a4e40d70210a';
+
+    const sponsoredJobs = [
+      {
+        id: 'sp1',
+        title: 'Customer Support Executive',
+        company: 'Hiring Now India',
+        location: 'Work From Home',
+        type: 'Full Time',
+        experience: 'Fresher',
+        salary: '₹15,000 – ₹25,000/mo',
+        postedDate: new Date(Date.now() - 1 * 86400000).toISOString(),
+        skills: ['Communication', 'MS Office', 'English'],
+        logoUrl: '',
+        initials: 'HN'
+      },
+      {
+        id: 'sp2',
+        title: 'Data Entry Operator',
+        company: 'QuickHire Solutions',
+        location: 'Remote / Anywhere',
+        type: 'Part Time',
+        experience: 'Entry Level',
+        salary: '₹12,000 – ₹18,000/mo',
+        postedDate: new Date(Date.now() - 2 * 86400000).toISOString(),
+        skills: ['Typing', 'Excel', 'Accuracy'],
+        logoUrl: '',
+        initials: 'QH'
+      },
+      {
+        id: 'sp3',
+        title: 'Sales & Marketing Executive',
+        company: 'FastGrowth Corp',
+        location: 'Karnataka',
+        type: 'Full Time',
+        experience: '0–2 Years',
+        salary: '₹18,000 – ₹30,000/mo',
+        postedDate: new Date(Date.now() - 3 * 86400000).toISOString(),
+        skills: ['Sales', 'Marketing', 'Target'],
+        logoUrl: '',
+        initials: 'FG'
+      },
+      {
+        id: 'sp4',
+        title: 'Accounts Assistant',
+        company: 'TopTalent Recruiters',
+        location: 'Hubli / Dharwad',
+        type: 'Full Time',
+        experience: '1–3 Years',
+        salary: '₹20,000 – ₹28,000/mo',
+        postedDate: new Date(Date.now() - 1 * 86400000).toISOString(),
+        skills: ['Tally', 'GST', 'Accounting'],
+        logoUrl: '',
+        initials: 'TT'
+      },
+      {
+        id: 'sp5',
+        title: 'Delivery Executive',
+        company: 'SwiftJobs Network',
+        location: 'Gadag / Belagavi',
+        type: 'Full Time',
+        experience: 'Fresher OK',
+        salary: '₹14,000 – ₹22,000/mo',
+        postedDate: new Date(Date.now() - 4 * 86400000).toISOString(),
+        skills: ['Driving Licence', 'Navigation', 'Punctuality'],
+        logoUrl: '',
+        initials: 'SJ'
+      },
+      {
+        id: 'sp6',
+        title: 'Computer Operator',
+        company: 'BrightCareer India',
+        location: 'Karnataka',
+        type: 'Full Time',
+        experience: 'Any',
+        salary: '₹13,000 – ₹20,000/mo',
+        postedDate: new Date(Date.now() - 2 * 86400000).toISOString(),
+        skills: ['Typing', 'Computer Basics', 'Internet'],
+        logoUrl: '',
+        initials: 'BC'
+      }
+    ];
+
+    function sponsoredCard(job, index) {
+      const tags = [job.location, job.type, job.experience].filter(Boolean);
+      const skills = job.skills.slice(0, 3);
+      return `
+        <article class="job-card is-sponsored" style="animation-delay:${Math.min(index * 35, 300)}ms" onclick="window.open('${SMARTLINK_URL}','_blank')" role="link" tabindex="0">
+          <div class="card-head">
+            <div class="company-block">
+              <div class="logo-wrap" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#7C3AED,#A855F7);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;font-family:Sora,sans-serif;">
+                ${job.initials}
+              </div>
+            </div>
+            <span class="sponsored-label">Sponsored</span>
+          </div>
+          <div>
+            <h2 class="job-title">${job.title}</h2>
+            <div style="color:var(--color-muted);font-size:13px;font-weight:600;margin-bottom:10px;">${job.company}</div>
+            ${tags.length ? `<div class="tags">${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : ''}
+            ${skills.length ? `<div class="skills" style="margin-top:8px;">${skills.map(skill => `<span class="skill">${skill}</span>`).join('')}</div>` : ''}
+          </div>
+          <div class="salary" style="margin-top:10px;">${job.salary}</div>
+          <div class="card-footer">
+            <span class="posted">${formatDisplayDate(job.postedDate)}</span>
+            <a class="arrow-link" href="${SMARTLINK_URL}" target="_blank" rel="noopener" onclick="event.stopPropagation()" aria-label="View ${job.title}">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </article>
+      `;
+    }
+
+    function injectSponsoredCards(jobsHtml, totalJobs) {
+      // Insert sponsored cards at positions: after 2nd, 5th, 8th real job
+      const insertPositions = [2, 5, 8];
+      const cards = jobsHtml.split('</article>').filter(c => c.trim());
+      const result = [];
+      let sponsorIndex = 0;
+
+      cards.forEach((card, i) => {
+        result.push(card + '</article>');
+        if (insertPositions.includes(i + 1) && sponsorIndex < sponsoredJobs.length) {
+          result.push(sponsoredCard(sponsoredJobs[sponsorIndex], i));
+          sponsorIndex++;
+        }
+      });
+
+      // If fewer than 3 real jobs, still show at least 2 sponsored cards at end
+      if (cards.length < 3) {
+        while (sponsorIndex < 2 && sponsorIndex < sponsoredJobs.length) {
+          result.push(sponsoredCard(sponsoredJobs[sponsorIndex], sponsorIndex));
+          sponsorIndex++;
+        }
+      }
+
+      return result.join('');
+    }
+
     function renderJobs() {
       const sorted = sortJobs(state.jobs);
       const normalJobs = sorted.filter(job => !job.featured);
       const featuredJobs = sorted.filter(job => job.featured);
       const visibleJobs = normalJobs.slice(0, state.visible);
       els.jobsGrid.classList.toggle('list', state.view === 'list');
-      els.jobsGrid.innerHTML = visibleJobs.map((job, index) => jobCard(job, index)).join('');
+      const rawJobsHtml = visibleJobs.map((job, index) => jobCard(job, index)).join('');
+      els.jobsGrid.innerHTML = injectSponsoredCards(rawJobsHtml, visibleJobs.length);
       els.featuredRow.innerHTML = featuredJobs.map((job, index) => jobCard(job, index)).join('');
       els.featuredSection.style.display = featuredJobs.length ? 'block' : 'none';
       els.emptyState.style.display = sorted.length ? 'none' : 'block';
