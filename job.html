@@ -311,7 +311,21 @@ SETUP:
               </div>
             </div>
             <div class="content-wrap">
-              ${job.description ? section('About This Role', `<div class="description">${escapeHtml(job.description)}</div>`) : ''}
+${job.description ? section('About This Role', `
+  <div class="description">
+    ${escapeHtml(job.description)}
+  </div>
+
+  <div style="margin:30px 0;text-align:center;">
+    <iframe
+      src="https://www.highperformanceformat.com/dd06bf8098d9692946b38a9f2f5f2017/invoke.html"
+      width="300"
+      height="250"
+      scrolling="no"
+      frameborder="0">
+    </iframe>
+  </div>
+`) : ''}            
               ${(job.responsibilities || []).length ? section('Responsibilities', dashList(job.responsibilities)) : ''}
               ${(job.requirements || []).length ? section('Requirements', dashList(job.requirements)) : ''}
               ${(job.skills || []).length ? section('Skills', `<div class="skills">${job.skills.map(skill => `<span class="skill">${escapeHtml(skill)}</span>`).join('')}</div>`) : ''}
