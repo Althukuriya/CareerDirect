@@ -130,6 +130,35 @@ SETUP:
     .mobile-back { display: none; position: fixed; left: 16px; bottom: 16px; z-index: 40; box-shadow: var(--shadow-strong); }
     .saved-fill { fill: currentColor; }
 
+
+    /* ── Ad Unit Styles (job.html) ── */
+    .ad-wrap { display: flex; justify-content: center; align-items: center; width: 100%; overflow: hidden; }
+    .ad-label { text-align: center; font-size: 10px; color: var(--color-muted); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
+    .ad-leaderboard-top { padding: 14px 0 0; }
+    @media (max-width: 768px) { .ad-leaderboard-top { display: none; } }
+    .ad-mid-content { padding: 28px 0 0; }
+    .ad-footer-area { padding: 24px 0; border-top: 1px solid var(--color-border); }
+    @media (max-width: 768px) { .ad-footer-area { display: none; } }
+    .ad-mobile-sticky {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 44;
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-border);
+      justify-content: center;
+      align-items: center;
+      padding: 4px 0;
+    }
+    @media (max-width: 560px) {
+      .ad-mobile-sticky { display: flex; }
+      body { padding-bottom: 70px; }
+    }
+    .ad-300x250-inline { display: flex; flex-direction: column; align-items: center; padding: 20px 0 0; }
+    .ad-native-related { padding: 0 0 20px; }
+    /* 160x600 skyscraper in side-card: add extra spacing */
+    .ad-skyscraper-side { margin-top: 20px; display: flex; flex-direction: column; align-items: center; }
+
     @media (max-width: 880px) {
       .nav-actions { display: none; }
       .hamburger { display: inline-flex; }
@@ -180,7 +209,27 @@ SETUP:
   <main class="page">
     <div class="page-container">
       <nav class="breadcrumb" id="breadcrumb"><a href="index.html">Home</a><span>·</span><a href="index.html">Jobs</a></nav>
+      <div class="ad-leaderboard-top">
+        <div class="ad-label">Advertisement</div>
+        <div class="ad-wrap">
+          <script>
+            atOptions = {
+              'key' : '56bfa774f6809634847ca20c73aa20d8',
+              'format' : 'iframe',
+              'height' : 90,
+              'width' : 728,
+              'params' : {}
+            };
+          </script>
+          <script type="text/javascript" src="//www.highperformanceformat.com/56bfa774f6809634847ca20c73aa20d8/invoke.js"></script>
+        </div>
+      </div>
       <div id="content"></div>
+      <div class="ad-native-related">
+        <div class="ad-label">Sponsored</div>
+        <script async="async" data-cfasync="false" src="https://pl29542659.effectivecpmnetwork.com/53740cffffdde0bdbfebcc93004d1980/invoke.js"></script>
+        <div id="container-53740cffffdde0bdbfebcc93004d1980"></div>
+      </div>
       <section class="related" id="relatedSection" hidden>
         <div class="related-head">
           <h2 class="related-title">More Roles You Might Like</h2>
@@ -191,13 +240,31 @@ SETUP:
     </div>
   </main>
 
+  <div class="ad-mid-content" style="padding: 28px 0;">
+    <div class="page-container">
+      <div class="ad-label">Advertisement</div>
+      <div class="ad-wrap">
+        <script>
+          atOptions = {
+            'key' : '6b6b091ff129ed52c8cd0259e63d7b6e',
+            'format' : 'iframe',
+            'height' : 60,
+            'width' : 468,
+            'params' : {}
+          };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/6b6b091ff129ed52c8cd0259e63d7b6e/invoke.js"></script>
+      </div>
+    </div>
+  </div>
+
   <button class="outline-btn mobile-back" id="mobileBack" type="button">
     <svg class="icon" viewBox="0 0 24 24"><path d="M19 12H5M11 19l-7-7 7-7"/></svg>
     Back to All Jobs
   </button>
 
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6HBn3Ni5piEir0-iBqxMvPnYosJXmxbxG1JeV9DgTyQr4VOxinF_hhJbq5zAUIOgC/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzayj3kwdzxw5fCP7seImBT7SEfUlSNPfMJifSF2fA45wk_H31BeNgG7sJzlVB3dT9u/exec';
     const STORAGE_KEY = 'careerdirect_saved_jobs';
     const params = new URLSearchParams(location.search);
     const jobId = params.get('id') || '';
@@ -275,6 +342,49 @@ SETUP:
       }
     }
 
+
+    // Inject ads into the side card after job renders
+    function injectSideAds() {
+      const sideCard = document.querySelector('.side-card');
+      if (!sideCard || sideCard.querySelector('.ad-injected-side')) return;
+
+      // 300x250 block
+      const ad300 = document.createElement('div');
+      ad300.className = 'ad-injected-side ad-300x250-inline';
+      ad300.innerHTML = `
+        <div class="ad-label">Advertisement</div>
+        <script>
+          atOptions = {
+            'key' : 'dd06bf8098d9692946b38a9f2f5f2017',
+            'format' : 'iframe',
+            'height' : 250,
+            'width' : 300,
+            'params' : {}
+          };
+        <\/script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/dd06bf8098d9692946b38a9f2f5f2017/invoke.js"><\/script>
+      `;
+      sideCard.appendChild(ad300);
+
+      // 160x300 block
+      const ad160 = document.createElement('div');
+      ad160.className = 'ad-injected-side ad-skyscraper-side';
+      ad160.innerHTML = `
+        <div class="ad-label" style="margin-top:12px;">Advertisement</div>
+        <script>
+          atOptions = {
+            'key' : '5c4cabac383480c0878a6d06e7c9b50a',
+            'format' : 'iframe',
+            'height' : 300,
+            'width' : 160,
+            'params' : {}
+          };
+        <\/script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/5c4cabac383480c0878a6d06e7c9b50a/invoke.js"><\/script>
+      `;
+      sideCard.appendChild(ad160);
+    }
+
     function renderJob(job) {
       document.title = `${job.title} at ${job.company} — CareerDirect`;
       document.querySelector('meta[name="description"]').setAttribute('content', `${job.title} at ${job.company}. Apply directly on the official company career page.`);
@@ -311,21 +421,7 @@ SETUP:
               </div>
             </div>
             <div class="content-wrap">
-${job.description ? section('About This Role', `
-  <div class="description">
-    ${escapeHtml(job.description)}
-  </div>
-
-  <div style="margin:30px 0;text-align:center;">
-    <iframe
-      src="https://www.highperformanceformat.com/dd06bf8098d9692946b38a9f2f5f2017/invoke.html"
-      width="300"
-      height="250"
-      scrolling="no"
-      frameborder="0">
-    </iframe>
-  </div>
-`) : ''}            
+              ${job.description ? section('About This Role', `<div class="description">${escapeHtml(job.description)}</div>`) : ''}
               ${(job.responsibilities || []).length ? section('Responsibilities', dashList(job.responsibilities)) : ''}
               ${(job.requirements || []).length ? section('Requirements', dashList(job.requirements)) : ''}
               ${(job.skills || []).length ? section('Skills', `<div class="skills">${job.skills.map(skill => `<span class="skill">${escapeHtml(skill)}</span>`).join('')}</div>`) : ''}
@@ -348,6 +444,7 @@ ${job.description ? section('About This Role', `
       `;
 
       bindJobActions();
+      setTimeout(injectSideAds, 150);
     }
 
     function section(label, body) {
@@ -473,5 +570,37 @@ ${job.description ? section('About This Role', `
       return escapeHtml(value).replace(/`/g, '&#96;');
     }
   </script>
+  <!-- Popunder / Social Bar -->
+  <script src="https://pl29542660.effectivecpmnetwork.com/59/82/20/59822091fd4984823045cdfc99af4f0a.js"></script>
+  <!-- Mobile sticky 468x60 compressed -->
+  <div class="ad-mobile-sticky">
+    <script>
+      atOptions = {
+        'key' : '6b6b091ff129ed52c8cd0259e63d7b6e',
+        'format' : 'iframe',
+        'height' : 60,
+        'width' : 468,
+        'params' : {}
+      };
+    </script>
+    <script type="text/javascript" src="//www.highperformanceformat.com/6b6b091ff129ed52c8cd0259e63d7b6e/invoke.js"></script>
+  </div>
+  <div class="ad-footer-area">
+    <div class="page-container">
+      <div class="ad-label">Advertisement</div>
+      <div class="ad-wrap">
+        <script>
+          atOptions = {
+            'key' : '56bfa774f6809634847ca20c73aa20d8',
+            'format' : 'iframe',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+          };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/56bfa774f6809634847ca20c73aa20d8/invoke.js"></script>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
